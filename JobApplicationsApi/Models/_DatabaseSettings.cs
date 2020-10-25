@@ -1,7 +1,7 @@
 ﻿
 namespace JobApplicationsApi.Models
 {
-    public class JobApplicationsDatabaseSettings : IJobApplicationsDatabaseSettings
+    public class DatabaseSettings : IDatabaseSettings
     {
         public string ApplicationsCollectionName { get; set; }
 
@@ -11,7 +11,7 @@ namespace JobApplicationsApi.Models
 
     }
 
-    public interface IJobApplicationsDatabaseSettings
+    public interface IDatabaseSettings
     {
         string ApplicationsCollectionName { get; set; }
 

@@ -28,13 +28,13 @@ namespace JobApplicationsApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<JobApplicationsDatabaseSettings>(
-                Configuration.GetSection(nameof(JobApplicationsDatabaseSettings)));
+            services.Configure<DatabaseSettings>(
+                Configuration.GetSection(nameof(DatabaseSettings)));
 
-            services.AddSingleton<IJobApplicationsDatabaseSettings>(sp =>
-                sp.GetRequiredService<IOptions<JobApplicationsDatabaseSettings>>().Value);
+            services.AddSingleton<IDatabaseSettings>(sp =>
+                sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
 
-            services.AddSingleton<ApplicationService>();
+            services.AddSingleton<IApplicationService, ApplicationService>();
 
             services.AddControllers();
         }

@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using JobApplicationsApi.Models;
 using JobApplicationsApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,25 +11,29 @@ namespace JobApplicationsApi.Controllers
     [ApiController]
     public class ApplicationsController : ControllerBase
     {
-        private readonly ApplicationService _applicationsService;
+        private readonly IApplicationService _applicationsService;
         private readonly ILogger<ApplicationsController> _logger;
 
-        public ApplicationsController(ApplicationService applicationService, ILogger<ApplicationsController> logger)
+        public ApplicationsController(IApplicationService applicationService, ILogger<ApplicationsController> logger)
         {
             _applicationsService = applicationService;
             _logger = logger;
         }
 
-        [HttpGet]
-        public ActionResult<List<Application>> GetAll() =>
-            _applicationsService.GetAll();
-
-        [HttpGet("{userId:length(3)}")]
-        public ActionResult<List<Application>> GetAllByUser(string userId)
+        [HttpGet("all_users_applications")]
+        public ActionResult<List<Application>> GetAll()
         {
-            var applications = _applicationsService.GetAllByUser(userId);
+            return _applicationsService.GetApplications();
+        }
+            
+        [HttpGet]
+        public ActionResult<List<Application>> GetAllByUser()
+        {
+            var userId = "123";// TODO replace with user id from JWT
 
-            if (applications == null || !applications.Any())
+            var applications = _applicationsService.GetApplicationsForUser(userId);
+
+            if (applications == null)
             {
                 return NotFound();
             }
@@ -37,10 +41,11 @@ namespace JobApplicationsApi.Controllers
             return applications;
         }
 
-        [HttpGet("{id:length(24)}", Name = "GetApplicaton")]
-        public ActionResult<Application> GetById(string id)
+        [HttpGet("{applicationId:length(24)}", Name = "GetApplication")]
+        [ActionName(nameof(GetApplication))]
+        public ActionResult<Application> GetApplication(string applicationId)
         {
-            var application = _applicationsService.GetById(id);
+            var application = _applicationsService.GetApplicationById(applicationId);
 
             if (application == null)
             {
@@ -53,40 +58,49 @@ namespace JobApplicationsApi.Controllers
         [HttpPost]
         public ActionResult<Application> Create(Application application)
         {
-            _applicationsService.Create(application);
+            _applicationsService.CreateApplication(application);
 
-            return CreatedAtRoute("GetApplication", new { id = application.Id.ToString() }, application);
+            return CreatedAtAction("GetApplication", new { applicationId = application.Id.ToString() }, application);
         }
 
-        [HttpPut("{id:length(24)}")]
-        public IActionResult Update(string id, Application application)
+        [HttpPut("{applicationId:length(24)}")]
+        public IActionResult Update(string applicationId, Application applicationIn)
         {
-            var appliction = _applicationsService.GetById(id);
+            var application = _applicationsService.GetApplicationById(applicationId);
 
             if (application == null)
             {
                 return NotFound();
             }
 
-            _applicationsService.Update(id, application);
+            _applicationsService.UpdateApplication(applicationId, applicationIn);
 
             return NoContent();
         }
 
-        [HttpDelete("{id:length(24)}")]
-        public IActionResult Delete(string id)
+        [HttpDelete("{applicationId:length(24)}")]
+        public IActionResult Delete(string applicationId)
         {
-            var application = _applicationsService.GetById(id);
+            var application = _applicationsService.GetApplicationById(applicationId);
 
             if (application == null)
             {
                 return NotFound();
             }
 
-            _applicationsService.Remove(application.Id);
+            _applicationsService.RemoveApplication(application.Id);
 
             return NoContent();
         }
 
+        [HttpDelete]
+        public IActionResult DeleteAllByUser()
+        {
+            var userId = "123";// TODO replace with user id from JWT
+
+            _applicationsService.RemoveAllApplications(userId);
+
+            return NoContent();
+        }
     }
 }
